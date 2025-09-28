@@ -25,7 +25,8 @@ const PIPE_GAP = 120;      // gap height (try 100-160)
 const PIPE_W = 40;
 
 
-let isGamePlaying = true;
+let isGamePlaying = false;
+let hasStarted = false;
 let isFlapping = false;
 let canPipeMove;
 let canSkyMove;
@@ -58,11 +59,12 @@ function setup() {
 }
 
 function gameStart(){
-  isGamePlaying = true;
-  isFlapping = false;
-  canPipeMove = true;
-  canSkyMove = true;
-  canBirdFlap = true;
+  hasStarted    = false;
+  isGamePlaying = false;
+  isFlapping    = false;
+  canPipeMove   = false;
+  canSkyMove    = false;
+  canBirdFlap   = false;
   
   noStroke();
   sky = new Sky(width)
@@ -76,6 +78,13 @@ function gameStart(){
   pipes.push(new Pipe(width + 40));
 }
 
+function startPlaying() {
+  hasStarted    = true;
+  isGamePlaying = true;
+  canPipeMove   = true;
+  canSkyMove    = true;
+  canBirdFlap   = true;
+}
 
 
 function draw() {
@@ -84,7 +93,17 @@ function draw() {
   sky.update();
   sky.show();
 
-  if (isGamePlaying === true){
+   if (!hasStarted) {
+    startScreen();
+    bird.show();      
+    return;        
+  }
+
+  if (!isGamePlaying) {
+    endScore();
+    return;      
+  }
+
   // 1) read input (students: add flap control here)
   // 2) update world
   score();
@@ -131,7 +150,6 @@ function draw() {
     }
    }
    }
-    score();
   // 3) draw bird last so it's on top
    bird.show();
   for (let i = blood.length - 1; i >= 0; i--) {
@@ -140,23 +158,26 @@ function draw() {
     }
   
 }
-  
-  else{
-    endScore();
-  }
 
-}
 
 /* ----------------- Input ----------------- */
 function handleInput() {
   // TODO (students): make the bird flap on key press
   // Hints:
   // - In keyPressed(): call bird.flap();
-   if (!isGamePlaying) {
-            gameStart();
-        } else {
-            bird.flap();
-        }
+    if (keyCode === 32) { // SPACE
+    if (!hasStarted) {
+      startPlaying();
+      bird.flap();       
+    } 
+    else if (isGamePlaying) {
+      bird.flap();
+    } 
+    else {
+      gameStart();
+    } 
+}
+
 }
 
 function keyPressed() {
@@ -369,7 +390,7 @@ function score(){
 
 function endScore(){
   background(18, 22, 28);
-  
+  textFont("Comic Sans MS")
   fill(250);
   textAlign(CENTER);
   textSize(50);
@@ -379,7 +400,16 @@ function endScore(){
   text("Final Score: " + scoreCount, width/2, height/2 - 20);
 
   textSize(15);
-  text("Press SPACE to restart", width/2, height /2 + 25 );
+  text("Press SPACE", width/2, height /2 + 25 );
+}
+
+function startScreen(){
+  textFont("Comic Sans MS")
+  fill(250);
+  textAlign(CENTER);
+  background(18, 22, 28);
+  textSize(25);
+  text("Press SPACE to start", width/2 + 40 , height /2 + 10);
 }
 
 
