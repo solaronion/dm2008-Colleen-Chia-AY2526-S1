@@ -14,6 +14,7 @@ let pipes = [];
 let sky;
 let scoreCount = 0;
 let blood = [];
+  
 
 let spawnCounter = 0;      // simple timer
 let birdCounter = 0;
@@ -25,8 +26,7 @@ const PIPE_GAP = 120;      // gap height (try 100-160)
 const PIPE_W = 40;
 
 
-let isGamePlaying = false;
-let hasStarted = false;
+let isGamePlaying = true;
 let isFlapping = false;
 let canPipeMove;
 let canSkyMove;
@@ -40,15 +40,26 @@ let skyImg;
 let pipeImg;
 let pipeBottomImg;
 let pipeTopImg;
+let gameOverImg;
+
+/* ----------------- Sound ----------------- */
+let flapSound;
+let hitSound;
+let dieSound;
+let music;
 
 
 function preload(){
   birdImg = loadImage("assets/bird.png");
-  birdFlapImg = loadImage("assets/birdflap.png")
-  skyImg = loadImage("assets/cloud.png")
-  pipeImg = loadImage("assets/pipe.png")
-  pipeBottomImg = loadImage("assets/pipebottom.png")
-  pipeTopImg = loadImage("assets/pipetop.png")
+  birdFlapImg = loadImage("assets/birdflap.png");
+  skyImg = loadImage("assets/cloud.png");
+  pipeImg = loadImage("assets/pipe.png");
+  pipeBottomImg = loadImage("assets/pipebottom.png");
+  pipeTopImg = loadImage("assets/pipetop.png");
+  gameOverImg = loadImage("assets/gameoverscreen.png")
+  flapSound = loadSound("assets/flap.mp3");
+  dieSound = loadSound("assets/die.mp3");
+  music = loadSound("assets/BGM.mp3");
 }
 
 /* ----------------- Setup & Draw ----------------- */
@@ -56,15 +67,19 @@ function setup() {
   imageMode(CENTER);
   createCanvas(480, 640);
   gameStart();
+  music.loop();
+  music.setVolume(0.8);
+  flapSound.setVolume(0.1);
+  dieSound.setVolume(0.5);
 }
 
 function gameStart(){
-  hasStarted    = false;
-  isGamePlaying = false;
-  isFlapping    = false;
-  canPipeMove   = false;
-  canSkyMove    = false;
-  canBirdFlap   = false;
+  isGamePlaying = true;
+  isFlapping = false;
+  canPipeMove = true;
+  canSkyMove = true;
+  canBirdFlap = true;
+  hasPlayedDieSound = false;
   
   noStroke();
   sky = new Sky(width)
@@ -76,15 +91,10 @@ function gameStart(){
   scoreCount = 0;
   spawnCounter = 0;
   pipes.push(new Pipe(width + 40));
+
+  
 }
 
-function startPlaying() {
-  hasStarted    = true;
-  isGamePlaying = true;
-  canPipeMove   = true;
-  canSkyMove    = true;
-  canBirdFlap   = true;
-}
 
 
 function draw() {
@@ -93,17 +103,7 @@ function draw() {
   sky.update();
   sky.show();
 
-   if (!hasStarted) {
-    startScreen();
-    bird.show();      
-    return;        
-  }
-
-  if (!isGamePlaying) {
-    endScore();
-    return;      
-  }
-
+  if (isGamePlaying === true){
   // 1) read input (students: add flap control here)
   // 2) update world
   score();
@@ -139,6 +139,7 @@ function draw() {
     canSkyMove = false;
     canBirdFlap = false;
     bird.die();
+   
 
     //isGamePlaying = false
     }
@@ -150,6 +151,7 @@ function draw() {
     }
    }
    }
+    score();
   // 3) draw bird last so it's on top
    bird.show();
   for (let i = blood.length - 1; i >= 0; i--) {
@@ -158,26 +160,23 @@ function draw() {
     }
   
 }
+  
+  else{
+    endScore();
+  }
 
+}
 
 /* ----------------- Input ----------------- */
 function handleInput() {
   // TODO (students): make the bird flap on key press
   // Hints:
   // - In keyPressed(): call bird.flap();
-    if (keyCode === 32) { // SPACE
-    if (!hasStarted) {
-      startPlaying();
-      bird.flap();       
-    } 
-    else if (isGamePlaying) {
-      bird.flap();
-    } 
-    else {
-      gameStart();
-    } 
-}
-
+   if (!isGamePlaying) {
+            gameStart();
+        } else {
+            bird.flap();
+        }
 }
 
 function keyPressed() {
@@ -208,6 +207,7 @@ class Bird {
         this.vel.y = this.flapStrength;
     isFlapping = true;
     flapCounter++
+    flapSound.play();
     if(flapCounter == 2){
       isFlapping = false;
       flapCounter = 0;
@@ -242,6 +242,10 @@ class Bird {
   }
   
   die() {
+   if (!hasPlayedDieSound) {
+    dieSound.play();
+    hasPlayedDieSound = true; 
+  }
   if (birdCounter === 0) { 
     for (let i = 0; i < 12; i++) {   
       let dx = random(-3, 3);
@@ -390,26 +394,18 @@ function score(){
 
 function endScore(){
   background(18, 22, 28);
-  textFont("Comic Sans MS")
+ 
   fill(250);
   textAlign(CENTER);
   textSize(50);
-  text("YOU DIED :(", width/2, height/2 - 100);
+  imageMode(CENTER);
+  image(gameOverImg, width/2, height/2)
 
   textSize(35);
-  text("Final Score: " + scoreCount, width/2, height/2 - 20);
+  text("Final Score: " + scoreCount, width/2, height/2 + 20);
 
   textSize(15);
-  text("Press SPACE", width/2, height /2 + 25 );
-}
-
-function startScreen(){
-  textFont("Comic Sans MS")
-  fill(250);
-  textAlign(CENTER);
-  background(18, 22, 28);
-  textSize(25);
-  text("Press SPACE to start", width/2 + 40 , height /2 + 10);
+  text("Press SPACE to restart", width/2, height /2 + 55 );
 }
 
 
