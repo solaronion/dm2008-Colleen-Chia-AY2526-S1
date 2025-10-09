@@ -57,9 +57,9 @@ function preload(){
   pipeBottomImg = loadImage("assets/pipebottom.png");
   pipeTopImg = loadImage("assets/pipetop.png");
   gameOverImg = loadImage("assets/gameoverscreen.png")
-  flapSound = loadSound("assets/flap.mp3");
-  dieSound = loadSound("assets/die.mp3");
-  music = loadSound("assets/BGM.mp3");
+  flapSound = loadSound("assets/Sound/flap.mp3");
+  dieSound = loadSound("assets/Sound/die.mp3");
+  music = loadSound("assets/Sound/BGM.mp3");
 }
 
 /* ----------------- Setup & Draw ----------------- */
